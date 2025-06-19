@@ -12,22 +12,25 @@ app = Flask(__name__)
 #def img(): #-copilot next line-
 def img():
     from flask import send_from_directory, abort
+    import pathlib
 
     # Get the filename from the query string
     filename = request.args.get('file')
     if not filename:
         abort(400, description="Missing file parameter.")
 
-    # Only allow filenames without path separators and with safe extensions
-    allowed_extensions = {'.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp'}
-    if (
-        '/' in filename or '\\' in filename or
-        not any(filename.lower().endswith(ext) for ext in allowed_extensions)
-    ):
-        abort(400, description="Invalid file name or extension.")
+    # Only allow filenames without path separators
+    if '/' in filename or '\\' in filename:
+        abort(400, description="Invalid file name.")
 
-    # Use a fixed directory for images
-    images_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'images')
+    # Only allow specific image extensions
+    allowed_exts = {'.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp'}
+    ext = pathlib.Path(filename).suffix.lower()
+    if ext not in allowed_exts:
+        abort(400, description="Invalid file extension.")
+
+    # Use a safe, absolute path to the images directory
+    images_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'images'))
 
     # Ensure the file exists in the images directory
     file_path = os.path.join(images_dir, filename)
