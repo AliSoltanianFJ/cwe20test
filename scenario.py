@@ -1,10 +1,6 @@
-user_input = input("Enter filename: ")
-# open the file and read the contents
-try:
-    with open(user_input, 'r') as file:
-        contents = file.read()
-        print(contents)
-except FileNotFoundError:
-    print("File not found.")
-except Exception as e:
-    print("Error:", e)
+import os
+
+directory = input("Enter the directory to list: ")
+# run the command to list files in the directory
+command = f"ls -l {directory}"
+os.system(command)
