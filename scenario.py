@@ -14,7 +14,7 @@ def img():
     filename = request.args.get('file')
     if not filename:
         return "No file specified", 400
-    filepath = os.path.join('images', filename)
+    filepath = os.path.join("images", filename)
     if not os.path.exists(filepath):
         return "File not found", 404
-    return redirect(f'/static/{filepath}')
+    return redirect(f"/{filepath}", code=302)
