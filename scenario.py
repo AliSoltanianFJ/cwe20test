@@ -12,27 +12,27 @@ app = Flask(__name__)
 #def img(): #-copilot next line-
 def img():
     from flask import send_from_directory, abort
-    import pathlib
+    import werkzeug.utils
 
     # Get the filename from the query string
-    filename = request.args.get('file')
-    if not filename:
-        abort(400, description="Missing file parameter.")
+    filename = request.args.get('file', '')
 
-    # Only allow filenames without path separators
-    if '/' in filename or '\\' in filename:
-        abort(400, description="Invalid file name.")
+    # Validate: Only allow safe filenames (no path traversal, no special chars)
+    if not filename or '/' in filename or '\\' in filename or filename.startswith('.'):
+        abort(400, description="Invalid filename.")
 
-    # Only allow specific image extensions
-    allowed_exts = {'.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp'}
-    ext = pathlib.Path(filename).suffix.lower()
+    # Use werkzeug's secure_filename to sanitize the filename
+    filename = werkzeug.utils.secure_filename(filename)
+
+    # Only allow certain image extensions
+    allowed_exts = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'}
+    ext = filename.rsplit('.', 1)[-1].lower()
     if ext not in allowed_exts:
         abort(400, description="Invalid file extension.")
 
-    # Use a safe, absolute path to the images directory
-    images_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'images'))
+    images_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'images')
 
-    # Ensure the file exists in the images directory
+    # Check if file exists in the images directory
     file_path = os.path.join(images_dir, filename)
     if not os.path.isfile(file_path):
         abort(404, description="File not found.")
