@@ -14,10 +14,9 @@ def img():
     filename = request.args.get('file')
     if not filename:
         return "No file specified", 400
-    # Prevent path traversal attacks
-    if '..' in filename or filename.startswith('/'):
-        return "Invalid file name", 400
-    filepath = os.path.join('images', filename)
-    if not os.path.exists(filepath):
+    # Prevent directory traversal
+    safe_filename = os.path.basename(filename)
+    image_path = os.path.join('images', safe_filename)
+    if not os.path.isfile(image_path):
         return "File not found", 404
-    return redirect(f'/static/{filepath}', code=302)
+    return app.send_static_file(image_path)
