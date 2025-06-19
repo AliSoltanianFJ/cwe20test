@@ -11,10 +11,12 @@ app = Flask(__name__)
 @app.route('/img')
 #def img(): #-copilot next line-
 def img():
+    from flask import send_from_directory, abort
+
     # Get the filename from the query string
     filename = request.args.get('file')
     if not filename:
-        return "Missing file parameter", 400
+        abort(400, description="Missing file parameter.")
 
     # Only allow filenames without path separators and with safe extensions
     allowed_extensions = {'.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp'}
@@ -22,19 +24,15 @@ def img():
         '/' in filename or '\\' in filename or
         not any(filename.lower().endswith(ext) for ext in allowed_extensions)
     ):
-        return "Invalid file name", 400
+        abort(400, description="Invalid file name or extension.")
 
-    # Build the safe absolute path
-    images_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'images'))
-    file_path = os.path.abspath(os.path.join(images_dir, filename))
+    # Use a fixed directory for images
+    images_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'images')
 
-    # Ensure the file is within the images directory
-    if not file_path.startswith(images_dir + os.sep):
-        return "Invalid file path", 400
-
+    # Ensure the file exists in the images directory
+    file_path = os.path.join(images_dir, filename)
     if not os.path.isfile(file_path):
-        return "File not found", 404
+        abort(404, description="File not found.")
 
-    # Use Flask's send_file for safe file serving
-    from flask import send_file
-    return send_file(file_path)
+    # Serve the file securely
+    return send_from_directory(images_dir, filename)
