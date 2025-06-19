@@ -12,8 +12,9 @@ app = Flask(__name__)
 #def img(): #-copilot next line-
 def img():
     filename = request.args.get('file')
-    if filename:
-        file_path = os.path.join('images', filename)
-        if os.path.exists(file_path):
-            return redirect(file_path)
-    return "Image not found", 404
+    if not filename:
+        return "No file specified", 400
+    filepath = os.path.join('images', filename)
+    if not os.path.exists(filepath):
+        return "File not found", 404
+    return redirect(f'/static/{filepath}')
